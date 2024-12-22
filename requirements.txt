@@ -1,0 +1,8 @@
+python-dotenv
+openai
+gradio
+transformers
+torch
+faiss-cpu
+accelerate
+bitsandbytes
