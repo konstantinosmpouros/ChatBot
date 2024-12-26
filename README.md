@@ -36,11 +36,8 @@ This project implements an interactive chat interface using **Gradio** to enable
 
 2. Make sure you have an enviroment variable named **HUGGINGFACE_TOKEN** with you token inside.
 
-3. Run the Chatbot:
+3. Run the Chatbot project from the parent directory:
 
    ```bash
-   python3 main.py
+   python3 ChatBot
    ```
-
-## Docker
-

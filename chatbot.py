@@ -8,7 +8,8 @@ import gc
 
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from transformers import BitsAndBytesConfig
+from transformers import BitsAndBytesConfig, TextIteratorStreamer
+from threading import Thread
 
 
 def hf_login():
@@ -41,7 +42,7 @@ def add_remider():
     prompt = """
     Remember, you are an ai assistant of the Aegean company and answer only question that has to do with the company's info.
     if the user want to know something different answer kindly that you cant help with topic not relevand to aegean.
-    Answer only in english, brief and clear
+    Answer only in english, brief and clear.
     """
     return prompt
 
@@ -75,20 +76,27 @@ def load_model(model_name):
         torch.cuda.empty_cache()
         return None, None
 
-def llm_response(tokenizer, model, history, prompt):
+def llm_response(tokenizer, model, history):
     # Set up the message to be tokenized
-    add_to_history(history, role='user', prompt=prompt)
     add_to_history(history, role='system', prompt=add_remider())
     tokenized_message = tokenizer.apply_chat_template(history, return_tensors="pt").to('cuda')
 
-    # Generate response
-    response = model.generate(tokenized_message, temperature=0.85, max_new_tokens=1000)
-    generated_tokens = response[0][len(tokenized_message[0]):]
+    # Initialize a stream to stream the response back
+    streamer = TextIteratorStreamer(tokenizer, 
+                                    skip_prompt=True,
+                                    skip_special_tokens=True)
 
-    # Decode response
-    output = tokenizer.decode(generated_tokens , skip_special_tokens=True)
-    if "assistant" in output:
-        output = output.split("assistant", 1)[-1].strip()
-    history = add_to_history(history, role='assistant', prompt=output)
+    # Generate response with in a thread
+    generation_kwargs = {
+        "input_ids": tokenized_message,  # Correctly pass input IDs
+        "streamer": streamer,
+        "temperature": 0.85,
+        "max_new_tokens": 10000,
+    }
+    thread = Thread(target=model.generate, kwargs=generation_kwargs)
+    thread.start()
 
-    return history
+    for i, text in enumerate(streamer):
+        if i > 3:
+            yield text
+
