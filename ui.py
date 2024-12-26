@@ -6,49 +6,35 @@ import gradio as gr
 PACKAGE_ROOT = Path(os.path.abspath(os.path.dirname(__file__)))
 sys.path.append(str(PACKAGE_ROOT))
 
-from chatbot import init_prompts, load_model, llm_response, add_to_history
+from llama import Llama_3_8B
+# from llama import init_prompts, load_model, llm_response, add_to_history
 
 
 models_available = {
-    'Llama 3.1' : 'meta-llama/Meta-Llama-3.1-8B-Instruct',
-    'Gemma 2' : 'google/gemma-2-9b-it'
+    'Llama 3.1' : Llama_3_8B(),
 }
-
 
 def start():
     # Initialize a method for the chating with the llm
-    def gradio_chat(history, user_input):
-        if not tokenizer or not model:
+    def gradio_chat(user_input):
+        if not llm.tokenizer or not llm.model:
             raise ValueError("Model not loaded. Please check the configuration.")
 
         # Add the user's prompt in the history and show it immediately
-        history = add_to_history(history, role='user', prompt=user_input)
-        chat_history = [
-            (entry["content"], None) if entry["role"] == "user" else (None, entry["content"]) 
-            for entry in history if entry["role"] != "system"
-        ]
-
-        yield chat_history, history, ''
-
-        # Generate the response and stream it back to the chatbox
-        history = add_to_history(history, role='assistant', prompt='')
+        llm.add_to_history(role='user', prompt=user_input)
+        yield llm.history, ''
 
         # Iterate over the llm_response generator
-        for text in llm_response(tokenizer, model, history):
-            history[-2]['content'] += text  # Append the streamed token to the assistant's response
-
-            chat_history = [
-                (entry["content"], None) if entry["role"] == "user" else (None, entry["content"]) 
-                for entry in history if entry["role"] != "system"
-            ]
-            yield chat_history, history, ''
-
-    # Load the model and initialize the chat history
-    history = init_prompts()
-    tokenizer, model = load_model(models_available["Llama 3.1"])
+        for text in llm.llm_response():
+            llm.history[-1]['content'] += text  # Append the streamed token to the assistant's response
+            yield llm.history, ''
 
     # Set the Gradio UI
     with gr.Blocks() as chat_interface:
+        # Load the model and initialize the chat history
+        llm = models_available['Llama 3.1']
+        llm.load_model()
+        
         # Title
         gr.Markdown("### Aegean AI Chat Assistant", elem_id="title")
 
@@ -61,18 +47,18 @@ def start():
         )
 
         # Chatbox, Input, Send Button
-        chatbot = gr.Chatbot()
+        chatbot = gr.Chatbot(type='messages')
         user_input = gr.Textbox(label="Your Message", placeholder="Type your prompt here...", lines=1)
         send_button = gr.Button("Send")
 
         # Bind send button and text box to chat logic
         send_button.click(gradio_chat, 
-                          inputs=[gr.State(history), user_input], 
-                          outputs=[chatbot, gr.State(history), user_input])
+                          inputs=[user_input], 
+                          outputs=[chatbot, user_input])
         
         user_input.submit(gradio_chat, 
-                          inputs=[gr.State(history), user_input], 
-                          outputs=[chatbot, gr.State(history), user_input])
+                          inputs=[user_input], 
+                          outputs=[chatbot, user_input])
 
     # Launch the Gradio interface
     chat_interface.launch()
