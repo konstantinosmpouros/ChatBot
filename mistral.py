@@ -1,10 +1,15 @@
 import gc
+import json
 
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from transformers import BitsAndBytesConfig, TextIteratorStreamer
+from transformers.utils import get_json_schema
 from threading import Thread
 
+from tools import google_search_top_5, current_datetime
+
+tools = [get_json_schema(google_search_top_5), get_json_schema(current_datetime)]
 
 class Mistral_7B():
 
@@ -13,7 +18,8 @@ class Mistral_7B():
         self.reminder_prompt = """
             Remember, you are an ai assistant of the Aegean company providing customer support and answer only question that has to do with the company's info.
             if the user want to know something different answer kindly that you cant help with topic not relevand to aegean.
-            Answer only in english, brief and clear.
+            Answer only in english, brief and clear. 
+            If in order to answer to the user you need to call a function then respond only the JSON needed and nothing else!!
         """
         self.model_name = 'mistralai/Mistral-7B-Instruct-v0.3'
         self.tokenizer, self.model = None, None
@@ -25,6 +31,7 @@ class Mistral_7B():
                 2. Answer only in english, brief and clear, understanding first what the user needs.
                 3. Be always polity and kind with any user! Always remember that you are made for customer support.
                 4. If the user asks you to answer about something non related to aegean company and the relevant customer support, answer kindly that you cant answer that.
+                5. If the user want you to execute a function call, answer only the JSON format and nothing more!! Nothing more!!
             When starting the conversation, greet kindly the user and then proceed to the customer support.
         """
 
