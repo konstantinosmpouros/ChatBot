@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 from huggingface_hub import login
 
-import ui
+from ui import ChatbotInterface
 
 
 # Load .env file and pass the keys to os as env variables
@@ -18,4 +18,6 @@ else:
 
 
 # Start the ChatBot UI
-ui.start()
+chatbot = ChatbotInterface()
+interface = chatbot.create_interface()
+interface.launch()

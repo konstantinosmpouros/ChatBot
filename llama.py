@@ -1,4 +1,5 @@
 import gc
+import time
 import json
 
 import torch
@@ -22,6 +23,7 @@ class Llama_3_8B():
             If in order to answer to the user you need to call a function then respond only the JSON needed and nothing else!!
         """
         self.model_name = 'meta-llama/Meta-Llama-3.1-8B-Instruct'
+        self.name = 'Llama 3.1 8B'
         self.tokenizer, self.model = None, None
 
     def init_history(self):
@@ -73,6 +75,7 @@ class Llama_3_8B():
         gc.collect()
         torch.cuda.empty_cache()
         self.tokenizer, self.model = None, None
+        time.sleep(3)
 
     def llm_response(self):
         # Set up the message to be tokenized

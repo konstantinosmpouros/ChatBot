@@ -1,5 +1,6 @@
 import gc
 import json
+import time
 
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -22,6 +23,7 @@ class Mistral_7B():
             If in order to answer to the user you need to call a function then respond only the JSON needed and nothing else!!
         """
         self.model_name = 'mistralai/Mistral-7B-Instruct-v0.3'
+        self.name = 'Mistral 7B v0.3'
         self.tokenizer, self.model = None, None
 
     def init_history(self):
@@ -73,6 +75,7 @@ class Mistral_7B():
         gc.collect()
         torch.cuda.empty_cache()
         self.tokenizer, self.model = None, None
+        time.sleep(3)
 
     def llm_response(self):
         pass
