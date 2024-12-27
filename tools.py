@@ -4,7 +4,9 @@ from googlesearch import search
 
 def current_datetime():
     """Get the current local time as a string."""
-    return str(datetime.datetime.now())
+    now = datetime.datetime.now()
+    formatted_date = now.strftime("%Y-%m-%d %H:%M:%S")
+    return formatted_date
 
 def google_search_top_5(query: str) -> list:
     """

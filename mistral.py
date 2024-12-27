@@ -9,11 +9,11 @@ from threading import Thread
 class Mistral_7B():
 
     def __init__(self):
-        self.history = None
+        self.history = self.init_history()
         self.reminder_prompt = """
             Remember, you are an ai assistant of the Aegean company providing customer support and answer only question that has to do with the company's info.
             if the user want to know something different answer kindly that you cant help with topic not relevand to aegean.
-            Answer only in english, brief and clear. If you need to call a function provide only the JSON and nothing else or else provide the JSON as the last part!!
+            Answer only in english, brief and clear.
         """
         self.model_name = 'mistralai/Mistral-7B-Instruct-v0.3'
         self.tokenizer, self.model = None, None
@@ -25,7 +25,6 @@ class Mistral_7B():
                 2. Answer only in english, brief and clear, understanding first what the user needs.
                 3. Be always polity and kind with any user! Always remember that you are made for customer support.
                 4. If the user asks you to answer about something non related to aegean company and the relevant customer support, answer kindly that you cant answer that.
-                5. If the user want you to execute a function call, answer only the JSON format and nothing more!! Nothing more!!
             When starting the conversation, greet kindly the user and then proceed to the customer support.
         """
 

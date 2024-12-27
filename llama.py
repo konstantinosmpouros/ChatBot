@@ -4,11 +4,12 @@ import json
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from transformers import BitsAndBytesConfig, TextIteratorStreamer
+from transformers.utils import get_json_schema
 from threading import Thread
 
 from tools import google_search_top_5, current_datetime
 
-tools = [google_search_top_5, current_datetime]
+tools = [get_json_schema(google_search_top_5), get_json_schema(current_datetime)]
 
 class Llama_3_8B():
 
@@ -17,8 +18,8 @@ class Llama_3_8B():
         self.reminder_prompt = """
             Remember, you are an ai assistant of the Aegean company providing customer support and answer only question that has to do with the company's info.
             if the user want to know something different answer kindly that you cant help with topic not relevand to aegean.
-            Answer only in english, brief and clear. If you need to call a function provide only the JSON and nothing else or else provide the JSON as the last part!!
-            The results of the last function call are passed as a system prompt, so be aware of this.
+            Answer only in english, brief and clear. 
+            If in order to answer to the user you need to call a function then respond only the JSON needed and nothing else!!
         """
         self.model_name = 'meta-llama/Meta-Llama-3.1-8B-Instruct'
         self.tokenizer, self.model = None, None
@@ -101,23 +102,20 @@ class Llama_3_8B():
         response = ''
         for i, text in enumerate(streamer):
             if i > 3:
-                print(text)
-                if str(text).startswith('{"name":') or function_call:
+                if str(text).startswith('{"name":') or str(text).startswith('{\n') or function_call:
                     function_call = True
                     response += text
                 else:
                     yield text
 
         if function_call:
-            print(response.strip())
             response = json.loads(response.strip())
 
             if response['name'] == 'google_search_top_5':
-                results = 'The top searches I found are the following: \n' + ', '.join(google_search_top_5(**response['parameters']))
+                results = 'The top searches I found are the following:\n' + '\n'.join(google_search_top_5(**response['parameters']))
             elif response['name'] == 'current_datetime':
                 results = 'The current date and time is: ' + current_datetime()
 
-            print(results)
-            self.add_to_history(role='assistant', prompt=results)
-            for text in self.llm_response():
-                yield text
+            results = self.tokenizer.encode(results, add_special_tokens=False)
+            for token in results:
+                yield self.tokenizer.decode(token, skip_special_tokens=True)

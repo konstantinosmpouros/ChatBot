@@ -1,9 +1,11 @@
 import gradio as gr
 from llama import Llama_3_8B
+from mistral import Mistral_7B
 
 
 models_available = {
     'Llama 3.1' : Llama_3_8B(),
+    'Mistral 7B' : Mistral_7B()
 }
 
 def start():
