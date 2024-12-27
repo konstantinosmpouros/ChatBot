@@ -1,13 +1,5 @@
-from pathlib import Path
-import os
-import sys
 import gradio as gr
-
-PACKAGE_ROOT = Path(os.path.abspath(os.path.dirname(__file__)))
-sys.path.append(str(PACKAGE_ROOT))
-
 from llama import Llama_3_8B
-# from llama import init_prompts, load_model, llm_response, add_to_history
 
 
 models_available = {
@@ -36,7 +28,7 @@ def start():
         llm.load_model()
         
         # Title
-        gr.Markdown("### Aegean AI Chat Assistant", elem_id="title")
+        gr.Markdown("### Aegean AI Chat Assistant")
 
         # Add a dropdown for selecting models
         model_dropdown = gr.Dropdown(
@@ -47,7 +39,7 @@ def start():
         )
 
         # Chatbox, Input, Send Button
-        chatbot = gr.Chatbot(type='messages')
+        chatbot = gr.Chatbot(type='messages', autoscroll=True)
         user_input = gr.Textbox(label="Your Message", placeholder="Type your prompt here...", lines=1)
         send_button = gr.Button("Send")
 

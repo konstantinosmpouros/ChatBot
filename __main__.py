@@ -1,12 +1,7 @@
-from pathlib import Path
 import os
-import sys
 
 from dotenv import load_dotenv
 from huggingface_hub import login
-
-PACKAGE_ROOT = Path(os.path.abspath(os.path.dirname(__file__)))
-sys.path.append(str(PACKAGE_ROOT))
 
 import ui
 

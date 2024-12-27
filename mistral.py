@@ -1,26 +1,21 @@
 import gc
-import json
 
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from transformers import BitsAndBytesConfig, TextIteratorStreamer
 from threading import Thread
 
-from tools import google_search_top_5, current_datetime
 
-tools = [google_search_top_5, current_datetime]
-
-class Llama_3_8B():
+class Mistral_7B():
 
     def __init__(self):
-        self.history = self.init_history()
+        self.history = None
         self.reminder_prompt = """
             Remember, you are an ai assistant of the Aegean company providing customer support and answer only question that has to do with the company's info.
             if the user want to know something different answer kindly that you cant help with topic not relevand to aegean.
             Answer only in english, brief and clear. If you need to call a function provide only the JSON and nothing else or else provide the JSON as the last part!!
-            The results of the last function call are passed as a system prompt, so be aware of this.
         """
-        self.model_name = 'meta-llama/Meta-Llama-3.1-8B-Instruct'
+        self.model_name = 'mistralai/Mistral-7B-Instruct-v0.3'
         self.tokenizer, self.model = None, None
 
     def init_history(self):
@@ -74,50 +69,5 @@ class Llama_3_8B():
         self.tokenizer, self.model = None, None
 
     def llm_response(self):
-        # Set up the message to be tokenized
-        self.add_to_history(role='system', prompt=self.reminder_prompt)
-        tokenized_message = self.tokenizer.apply_chat_template(self.history, 
-                                                               tools=tools, 
-                                                               return_tensors="pt").to('cuda')
+        pass
 
-        # Initialize a stream to stream the response back
-        streamer = TextIteratorStreamer(self.tokenizer, 
-                                        skip_prompt=True,
-                                        skip_special_tokens=True)
-
-        # Generate response with in a thread
-        generation_kwargs = {
-            "input_ids": tokenized_message,  # Correctly pass input IDs
-            "streamer": streamer,
-            "temperature": 0.85,
-            "max_new_tokens": 10000,
-        }
-        thread = Thread(target=self.model.generate, kwargs=generation_kwargs)
-        thread.start()
-
-        self.add_to_history(role='assistant', prompt='')
-
-        function_call = False
-        response = ''
-        for i, text in enumerate(streamer):
-            if i > 3:
-                print(text)
-                if str(text).startswith('{"name":') or function_call:
-                    function_call = True
-                    response += text
-                else:
-                    yield text
-
-        if function_call:
-            print(response.strip())
-            response = json.loads(response.strip())
-
-            if response['name'] == 'google_search_top_5':
-                results = 'The top searches I found are the following: \n' + ', '.join(google_search_top_5(**response['parameters']))
-            elif response['name'] == 'current_datetime':
-                results = 'The current date and time is: ' + current_datetime()
-
-            print(results)
-            self.add_to_history(role='assistant', prompt=results)
-            for text in self.llm_response():
-                yield text
