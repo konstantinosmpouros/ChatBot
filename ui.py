@@ -1,7 +1,13 @@
-import gradio as gr
-from llama import Llama_3_8B
-from mistral import Mistral_7B
+from pathlib import Path
+import sys
+import os
 
+PACKAGE_ROOT = Path(os.path.abspath(os.path.dirname(__file__)))
+sys.path.append(str(PACKAGE_ROOT))
+
+import gradio as gr
+from LLMs.llama import Llama_3_8B
+from LLMs.mistral import Mistral_7B
 
 class ChatbotInterface:
     def __init__(self):

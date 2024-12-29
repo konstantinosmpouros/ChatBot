@@ -1,6 +1,12 @@
 import datetime
 from googlesearch import search
 
+from pathlib import Path
+import sys
+import os
+
+PACKAGE_ROOT = Path(os.path.abspath(os.path.dirname(__file__))).parent.parent
+sys.path.append(str(PACKAGE_ROOT))
 
 def current_datetime():
     """Get the current local time as a string."""
@@ -19,6 +25,7 @@ def google_search_top_5(query: str) -> list:
     """
     try:
         # Perform a Google search and return the top 5 links
-        return list(search(query, num_results=5))
+        results = list(search(query, num_results=5))
+        return results
     except Exception as e:
         return [f"Error during search: {e}"]

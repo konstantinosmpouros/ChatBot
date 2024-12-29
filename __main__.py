@@ -1,4 +1,9 @@
+from pathlib import Path
+import sys
 import os
+
+PACKAGE_ROOT = Path(os.path.abspath(os.path.dirname(__file__))).parent.parent
+sys.path.append(str(PACKAGE_ROOT))
 
 from dotenv import load_dotenv
 from huggingface_hub import login
