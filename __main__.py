@@ -8,7 +8,7 @@ sys.path.append(str(PACKAGE_ROOT))
 from dotenv import load_dotenv
 from huggingface_hub import login
 
-from ui import ChatbotInterface
+from UI import ChatbotInterface
 
 
 # Load .env file and pass the keys to os as env variables
